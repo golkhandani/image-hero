@@ -49,23 +49,16 @@ export async function runCrawlerScheduler(db: mysql.Connection) {
                 const price = prices[index];
                 tetherPrice.Buy += price!.Buy / count;
                 tetherPrice.Sell += price!.Sell / count;
-                if(index == count - 1) {
-                    insertQuery += ` ('${tetherPrice.Source}','${tetherPrice.Sell}','${tetherPrice.Buy}');`;
-                } else {
-                    insertQuery += ` ('${tetherPrice.Source}','${tetherPrice.Sell}','${tetherPrice.Buy}'),`;
-                }
+                insertQuery += ` ('${price.Source}','${price.Sell}','${price.Buy}'),`;
                 
             }            
             if(tetherPrice.Buy !== 0 && tetherPrice.Sell !== 0) {
+                insertQuery += ` ('${tetherPrice.Source}','${tetherPrice.Sell}','${tetherPrice.Buy}');`;
                 await db.query(`${insertQuery};`)
             }
             console.dir({
                 counter: counter++,
-                abanTetherPrice,
-                tetherLandPrice,
-                iranTetherPrice,
-                exNovinTetherPrice,
-                bitTwentyFourTetherPrice,
+                prices,
                 tetherPrice
             }, { depth: null, colors: true })
             
