@@ -21,8 +21,9 @@ import { Price } from '@entities/price.entity';
 import { User } from '@entities/user.entity';
 import { OTP } from '@entities/otp.entity';
 import { TradeRouter } from '@routes/trade';
-import { Trade, TradeService } from '@services/trade';
+import { TradeService } from '@services/trade';
 import { ZibalPayment } from '@shared/zibal.helper';
+import { Trade } from '@entities/trade.entity';
 
 // create the connection to database
 // Start the server

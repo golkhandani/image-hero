@@ -1,8 +1,9 @@
 import { CreateBuyTradeDto, PayBuyTradeDto, VerifyBuyTradeDto } from '@dtos/trade.dto';
 import { LoginDto, PhoneVerificationCodeDto, PhoneVerificationDto, RegisterUserInfoDto } from '@dtos/user.dto';
 import { OTP } from '@entities/otp.entity';
+import { Trade } from '@entities/trade.entity';
 import { User } from '@entities/user.entity';
-import { Trade, TradeService } from '@services/trade';
+import { TradeService } from '@services/trade';
 import { apiResponse } from '@shared/api-response.helper';
 import { authMiddleware, RequestWithUser } from '@shared/auth.middleware';
 import { catchError } from '@shared/catch-error.interceptor';

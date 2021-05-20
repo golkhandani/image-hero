@@ -1,5 +1,6 @@
 import { CreateBuyTradeDto, PayBuyTradeDto, VerifyBuyTradeDto } from "@dtos/trade.dto";
 import { ourSource, Price } from "@entities/price.entity";
+import { Trade, TradeStatus, TradeType } from "@entities/trade.entity";
 import { User } from "@entities/user.entity";
 import { priceExpirationMinute } from "@shared/constants";
 import { HttpError } from "@shared/http-error.helper";
@@ -7,52 +8,6 @@ import { CreatePaymentRequestDto, VerifyPaymentRequestDto, ZibalPayment } from "
 import { plainToClass } from "class-transformer";
 import moment from "moment";
 import { Collection, ObjectId } from "mongodb";
-
-export enum TradeType {
-  BUY = 'BUY',
-  SELL = 'SELL',
-}
-
-export enum TradeStatus {
-  NOT_PAID = 'NOT_PAID',
-  NOT_TRANSFERRED = 'NOT_TRANSFERRED',
-
-  PAID = 'PAID',
-  TRANSFERRED = 'TRANSFERRED',
-
-}
-
-export class TradePayment {
-  amount: number;
-  referenceId?: string;
-  paidAt?: Date;
-  gateway: string;
-  url: string;
-}
-
-export type TradeUserInfo = Omit<User, "password" | "status" | "createAt" | "updatedAt" | "sessions">
-
-export class Trade {
-  _id: ObjectId;
-  type: TradeType;
-  userInfo: TradeUserInfo;
-  walletAddress?: string;
-  bankAddress?: string;
-  amount: number;
-  price: Price;
-  status: TradeStatus;
-  payment?: TradePayment;
-  createdAt: Date;
-  updatedAt: Date;
-  expireAt: Date;
-
-
-  constructor(data: Omit<Trade, "_id">) {
-    if (data) {
-      return Object.assign(this, data);
-    }
-  }
-}
 
 
 export class TradeService {
@@ -110,7 +65,9 @@ export class TradeService {
     })
 
     if (!existsTrade) {
-      throw new HttpError({ message: "Invoice has not found. Please contact support!", status: 400 })
+      throw new HttpError({ message: "Invoice has not found. Please contact support!", status: 400 });
+    } else if(existsTrade && moment(existsTrade.expireAt).isAfter(new Date())) {
+      throw new HttpError({ message: "Invoice has been expired.", status: 400 })
     }
     const paymentDto: CreatePaymentRequestDto = {
       amount: existsTrade.amount * existsTrade.price.buy,
