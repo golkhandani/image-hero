@@ -7,3 +7,7 @@ declare module 'express' {
         };
     }
 }
+
+declare module 'zibal' {
+    
+}

@@ -70,11 +70,20 @@
       "@daos/*": [
         "src/daos/*"
       ],
+      "@dtos/*": [
+        "src/dtos/*"
+      ],
       "@entities/*": [
         "src/entities/*"
       ],
       "@shared/*": [
         "src/shared/*"
+      ],
+      "@services/*": [
+        "src/services/*"
+      ],
+      "@routes/*": [
+        "src/routes/*"
       ],
       "@server": [
         "src/Server"

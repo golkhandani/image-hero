@@ -1,42 +1,59 @@
 import './pre-start'; // Must be the first import
+import "reflect-metadata";
 
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import path from 'path';
 import helmet from 'helmet';
+
 
 import express, { NextFunction, Request, Response } from 'express';
 import StatusCodes from 'http-status-codes';
 import 'express-async-errors';
 
-import BaseRouter from './routes';
-import logger from '@shared/Logger';
+import logger from '@shared/logger';
 // get the client
 import mysql from "mysql2/promise";
-import { runCrawlerScheduler } from './services/crawler';
+import { runCrawlerScheduler, runMongoCrawlerScheduler } from './services/crawler';
 import { MongoConnection } from '@shared/database';
-import { AuthService } from './services/auth';
-import { AuthRouter } from './routes/auth';
+import { UserRouter } from './routes/user';
+import { UserService } from './services/user';
+import { Price } from '@entities/price.entity';
+import { User } from '@entities/user.entity';
+import { OTP } from '@entities/otp.entity';
+import { TradeRouter } from '@routes/trade';
+import { Trade, TradeService } from '@services/trade';
+import { ZibalPayment } from '@shared/zibal.helper';
+
 // create the connection to database
 // Start the server
 async function main() {
 
     const mongoInstance = await MongoConnection.getInstance();
-    const mysqlInstance = await mysql.createConnection({
-        host: 'localhost',
-        port: 3306,
-        user: 'root',
-        password: "password",
-        database: 'OnPay'
-    });
+    const zibalInstance = await ZibalPayment.getInstance();
+    // const mysqlInstance = await mysql.createConnection({
+    //     host: 'localhost',
+    //     port: 3306,
+    //     user: 'root',
+    //     password: "password",
+    //     database: 'OnPay'
+    // });
 
-    runCrawlerScheduler(mysqlInstance)
+    runMongoCrawlerScheduler(mongoInstance.collection(Price.name));
     const port = Number(process.env.PORT || 3000);
 
     // setup services
-    const authService = new AuthService(mongoInstance.collection("User"));
-    const authRouter = new AuthRouter(authService).setupRoutes();
+    const authService = new UserService(
+        mongoInstance.collection(User.name),
+        mongoInstance.collection(OTP.name)
+    );
+    const authRouter = new UserRouter(authService).setupRoutes();
 
+    const tradeService = new TradeService(
+        mongoInstance.collection(Price.name),
+        mongoInstance.collection(Trade.name),
+        zibalInstance,
+    );
+    const tradeRouter = new TradeRouter(tradeService).setupRoutes();
 
     const app = express();
     const { BAD_REQUEST } = StatusCodes;
@@ -63,7 +80,7 @@ async function main() {
 
     // Add APIs
     app.use('/api', authRouter);
-
+    app.use('/api', tradeRouter);
     // Print API errors
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
@@ -79,16 +96,16 @@ async function main() {
      *                              Serve front-end content
      ***********************************************************************************/
 
-    const viewsDir = path.join(__dirname, 'views');
-    app.set('views', viewsDir);
-    const staticDir = path.join(__dirname, 'public');
-    app.use(express.static(staticDir));
-    app.get('*', (req: Request, res: Response) => {
-        res.sendFile('index.html', { root: viewsDir });
-    });
+    // const viewsDir = path.join(__dirname, 'views');
+    // app.set('views', viewsDir);
+    // const staticDir = path.join(__dirname, 'public');
+    // app.use(express.static(staticDir));
+    // app.get('*', (req: Request, res: Response) => {
+    //     res.sendFile('index.html', { root: viewsDir });
+    // });
 
 
-    app.set("db", mysqlInstance);
+    // app.set("db", mysqlInstance);
     app.set("mongo", mongoInstance);
     app.listen(port, () => {
         logger.info('Express server started on port: ' + port);

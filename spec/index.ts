@@ -2,7 +2,7 @@ import './loadEnv';
 import find from 'find';
 import Jasmine from 'jasmine';
 import commandLineArgs from 'command-line-args';
-import logger from '@shared/Logger';
+import logger from '@shared/logger';
 
 
 

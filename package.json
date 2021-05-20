@@ -21,8 +21,11 @@
   },
   "_moduleAliases": {
     "@daos": "dist/daos",
+    "@dtos": "dist/dtos",
     "@entities": "dist/entities",
     "@shared": "dist/shared",
+    "@services": "dist/services",
+    "@routes": "dist/routes",
     "@server": "dist/Server"
   },
   "eslintConfig": {
@@ -73,11 +76,14 @@
     "jet-logger": "^1.0.4",
     "jsonfile": "^6.1.0",
     "module-alias": "^2.2.2",
+    "moment": "^2.29.1",
     "mongodb": "^3.6.7",
     "morgan": "^1.10.0",
     "mysql2": "^2.2.5",
     "node-cron": "^3.0.0",
-    "node-fetch": "^2.6.1"
+    "node-fetch": "^2.6.1",
+    "reflect-metadata": "^0.1.13",
+    "zibal": "^1.0.2"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
