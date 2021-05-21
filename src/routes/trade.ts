@@ -1,4 +1,4 @@
-import { CreateBuyTradeDto, PayBuyTradeDto, VerifyBuyTradeDto } from '@dtos/trade.dto';
+import { CreateBuyTradeDto, CreateSellTradeDto, ConfirmTradeDto, VerifyBuyTradeDto } from '@dtos/trade.dto';
 import { LoginDto, PhoneVerificationCodeDto, PhoneVerificationDto, RegisterUserInfoDto } from '@dtos/user.dto';
 import { OTP } from '@entities/otp.entity';
 import { Trade } from '@entities/trade.entity';
@@ -20,51 +20,79 @@ export class TradeRouter {
     }
 
     setupRoutes() {
+
+        // I Have to check the route list and what they will sent to us
+        // should check the zibal
+        this.router.get("/trade/buy/payment/verify-callback", authMiddleware, async (req, res) => {
+           
+        });
+
         this.router.post("/trade/buy", authMiddleware, async (req, res) => {
             try {
                 const user = (req as RequestWithUser).user;
                 const body = await validateAndTransformRequest(req.body, CreateBuyTradeDto)
                 const data = await this.tradeService.createBuyTradeRequest(user, body);
                 return res.send(apiResponse<Trade>({ data }));
-            } catch (error) {                
+            } catch (error) {
                 catchError(error, res);
             }
         });
+
+
 
         this.router.get("/trade/buy/:tradeId/payment", authMiddleware, async (req, res) => {
             try {
                 const user = (req as RequestWithUser).user;
-                const param = await validateAndTransformRequest(req.params, PayBuyTradeDto)
+                const param = await validateAndTransformRequest(req.params, ConfirmTradeDto)
                 const data = await this.tradeService.payBuyTradeRequest(user, param);
                 return res.send(apiResponse<Trade>({ data }));
-            } catch (error) {                
+            } catch (error) {
                 catchError(error, res);
             }
         });
 
-        this.router.get("/trade/buy/verify-callback", authMiddleware, async (req, res) => {
+        // get payment confirmation
+        this.router.get("/trade/buy/:tradeId/payment/:paymentReferenceId", authMiddleware, async (req, res) => {
             try {
                 const user = (req as RequestWithUser).user;
-                const body = await validateAndTransformRequest(req.body, VerifyBuyTradeDto)
-                const data = await this.tradeService.verifyBuyTradeRequest(user, body);
+                const param = await validateAndTransformRequest(req.params, VerifyBuyTradeDto);
+                const data = await this.tradeService.verifyBuyTradeRequest(user, param);
                 return res.send(apiResponse<Trade>({ data }));
-            } catch (error) {                
+            } catch (error) {
                 catchError(error, res);
             }
         });
 
-        this.router.get("/trade/buy/verify-callback", authMiddleware, async (req, res) => {
-            // try {
-            //     const user = (req as RequestWithUser).user;
-            //     const body = await validateAndTransformRequest(req.body, VerifyBuyTradeDto)
-            //     const data = await this.tradeService.createNewBuyRequest(user, body);
-            //     return res.send(apiResponse<Trade>({ data }));
-            // } catch (error) {                
-            //     catchError(error, res);
-            // }
+
+        this.router.post("/trade/sell", authMiddleware, async (req, res) => {
+            try {
+                const user = (req as RequestWithUser).user;
+                const body = await validateAndTransformRequest(req.body, CreateSellTradeDto)
+                const data = await this.tradeService.createSellTradeRequest(user, body);
+                return res.send(apiResponse<Trade>({ data }));
+            } catch (error) {
+                catchError(error, res);
+            }
         });
 
-      
+
+
+        this.router.get("/trade/sell/:tradeId/confirm", authMiddleware, async (req, res) => {
+            try {
+                const user = (req as RequestWithUser).user;
+                const param = await validateAndTransformRequest(req.params, ConfirmTradeDto)
+                const data = await this.tradeService.paySellTradeRequest(user, param);
+                return res.send(apiResponse<Trade>({ data }));
+            } catch (error) {
+                catchError(error, res);
+            }
+        });
+
+
+
+
+
+
 
 
 

@@ -1,6 +1,7 @@
+import { TradeNetwork } from '@entities/trade.entity';
 import { toObjectId } from '@shared/to-objectId.transformer';
 import { Transform } from 'class-transformer';
-import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { IsDefined, IsEnum, IsNumber, IsString } from 'class-validator';
 import { ObjectId } from 'mongodb';
 
 export class CreateBuyTradeDto {
@@ -11,9 +12,14 @@ export class CreateBuyTradeDto {
   @IsDefined()
   @IsNumber()
   amount: number;
+
+
+  @IsDefined()
+  @IsEnum(TradeNetwork)
+  network: number;
 }
 
-export class PayBuyTradeDto {
+export class ConfirmTradeDto {
   @IsDefined()
   @Transform(toObjectId)
   tradeId: ObjectId;
@@ -22,9 +28,19 @@ export class PayBuyTradeDto {
 export class VerifyBuyTradeDto {
   @IsDefined()
   @Transform(toObjectId)
-  buyTradeId: ObjectId;
+  tradeId: ObjectId;
 
   @IsDefined()
   @IsNumber()
   paymentReferenceId: number;
+}
+
+export class CreateSellTradeDto {
+  @IsDefined()
+  @IsString()
+  BankAddress: string;
+
+  @IsDefined()
+  @IsNumber()
+  amount: number;
 }

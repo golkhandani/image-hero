@@ -7,6 +7,11 @@ export enum TradeType {
   SELL = 'SELL',
 }
 
+export enum TradeNetwork {
+  K20 = 'K20',
+  K10 = 'K10',
+}
+
 export enum TradeStatus {
   NOT_PAID = 'NOT_PAID',
   NOT_TRANSFERRED = 'NOT_TRANSFERRED',
