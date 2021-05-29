@@ -5,7 +5,7 @@ import { getAbanTetherPrice, getBitTwentyFourTetherPrice, getExNovinTetherPrice,
 import mysql from "mysql2/promise";
 import { Collection, Db, ObjectId } from "mongodb";
 import moment from "moment";
-import { Price } from "@entities/price.entity";
+import { Pricing } from "@entities/price.entity";
 
 let counter = 0;
 
@@ -87,7 +87,7 @@ export async function runCrawlerScheduler(db: mysql.Connection) {
 }
 
 
-export async function runMongoCrawlerScheduler(priceCollection: Collection<Price>) {
+export async function runMongoCrawlerScheduler(priceCollection: Collection<Pricing>) {
 
     cron.schedule('*/10 * * * * *', async () => {
         console.log(new Date(), 'running a task every 1 minutes to get all prices');
@@ -109,21 +109,21 @@ export async function runMongoCrawlerScheduler(priceCollection: Collection<Price
                 getBitTwentyFourTetherPrice()
             ]);
 
-            const prices: Price[] = [
+            const prices: Pricing[] = [
                 abanTetherPrice,
                 tetherLandPrice,
                 iranTetherPrice,
                 exNovinTetherPrice,
                 bitTwentyFourTetherPrice
             ].filter(item => item?.Buy != 0 && item?.Sell != 0)
-                .map(item => new Price({
+                .map(item => new Pricing({
                     buy: item.Buy,
                     sell: item.Sell,
                     source: item.Source,
                     createdAt: new Date()
                 }));
 
-            let onPayTetherPrice = new Price({
+            let onPayTetherPrice = new Pricing({
                 source: "OnPay",
                 buy: 0,
                 sell: 0,

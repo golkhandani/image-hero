@@ -17,7 +17,7 @@ import { runCrawlerScheduler, runMongoCrawlerScheduler } from './services/crawle
 import { MongoConnection } from '@shared/database';
 import { UserRouter } from './routes/user';
 import { UserService } from './services/user';
-import { Price } from '@entities/price.entity';
+import { Pricing } from '@entities/price.entity';
 import { User } from '@entities/user.entity';
 import { OTP } from '@entities/otp.entity';
 import { TradeRouter } from '@routes/trade';
@@ -30,7 +30,58 @@ import { Trade } from '@entities/trade.entity';
 async function main() {
 
     const mongoInstance = await MongoConnection.getInstance();
-    const zibalInstance = await ZibalPayment.getInstance();
+    
+    
+    const apiKey= 'rKfO3Z2SPyEf0ttH7k6BghhNLB7EumOpvxQiwJAlCPtEHrxmAQGisThCvaw8otJs';
+    const apiSecret = 'Ywkyge1lj4N45aDO7e4G2jzEeNAU3izjmk1NhIcEY1T6W9joeNQgUcYue63WqT8G';
+    const crypto = require('crypto');
+    const fetch = require('node-fetch');
+    function signature(query_string:string) {
+        return crypto
+            .createHmac('sha256', apiSecret)
+            .update(query_string)
+            .digest('hex');
+    }
+    const qrs = `coin=USDT&withdrawOrderId=1373805golkhandani&network=TRX&address=TR1KnTju1T9oyrosFLLPsMcWzNmZgbbWw8&amount=50&timestamp=${Date.now()}`
+    console.log(Date.now());
+    console.log('1621769231');
+    
+    
+    const sig = `&signature=${signature(qrs)}`
+    const binanceApi = await fetch(
+        `https://api.binance.com/sapi/v1/capital/withdraw/apply?${qrs}${sig}`,
+        {
+            method: 'post',
+            headers: {
+                'X-MBX-APIKEY': apiKey,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+
+    
+    const binanceApiData = await binanceApi.json();
+    console.log(binanceApiData);
+
+
+    const qrs_withdraw_history = `coin=USDT&status=&offset=&limit=100&startTime=&endTime=&timestamp=${Date.now()}`;
+    const sig_withdraw_history = `&signature=${signature(qrs_withdraw_history)}`
+    const binanceApi_withdraw = await fetch(
+        `https://api.binance.com/sapi/v1/capital/withdraw/history?${qrs_withdraw_history}${sig_withdraw_history}`,
+        {
+            method: 'get',
+            headers: {
+                'X-MBX-APIKEY': apiKey,
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+    // const binanceApiData_withdraw = await binanceApi_withdraw.json();
+    // console.log(binanceApiData_withdraw);
+    
+
+   
+    //
     // const mysqlInstance = await mysql.createConnection({
     //     host: 'localhost',
     //     port: 3306,
@@ -39,22 +90,10 @@ async function main() {
     //     database: 'OnPay'
     // });
 
-    runMongoCrawlerScheduler(mongoInstance.collection(Price.name));
+    // runMongoCrawlerScheduler(mongoInstance.collection(Pricing.name));
     const port = Number(process.env.PORT || 3000);
 
-    // setup services
-    const authService = new UserService(
-        mongoInstance.collection(User.name),
-        mongoInstance.collection(OTP.name)
-    );
-    const authRouter = new UserRouter(authService).setupRoutes();
-
-    const tradeService = new TradeService(
-        mongoInstance.collection(Price.name),
-        mongoInstance.collection(Trade.name),
-        zibalInstance,
-    );
-    const tradeRouter = new TradeRouter(tradeService).setupRoutes();
+   
 
     const app = express();
     const { BAD_REQUEST } = StatusCodes;
@@ -80,8 +119,25 @@ async function main() {
     }
 
     // Add APIs
-    app.use('/api', authRouter);
-    app.use('/api', tradeRouter);
+    // setup services
+     /************************************************************************************
+     *                              Setup controllers
+     ***********************************************************************************/
+    // const zibalInstance = await ZibalPayment.getInstance();
+    // const authService = new UserService(
+    //     mongoInstance.collection(User.name),
+    //     mongoInstance.collection(OTP.name)
+    // );
+    // const authRouter = new UserRouter(authService).setupRoutes();
+
+    // const tradeService = new TradeService(
+    //     mongoInstance.collection(Price.name),
+    //     mongoInstance.collection(Trade.name),
+    //     zibalInstance,
+    // );
+    // const tradeRouter = new TradeRouter(tradeService).setupRoutes();
+    // app.use('/api', authRouter);
+    // app.use('/api', tradeRouter);
     // Print API errors
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

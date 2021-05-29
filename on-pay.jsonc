@@ -1,0 +1,73 @@
+// user
+[
+    {
+    "_id": "507f191e810c19729de860ea",
+    "firstName": "Mohammadreza",
+    "lastName": "Rahimiangolkhandani",
+    "phone": "+98912806914",
+    "email": "golkhandani@gmail.com",
+    "verified": true,
+    "active": true,
+    "createdAt" :"2021-05-19T16:07:20.029Z",
+    "updatedAt": "2021-05-19T16:07:20.029Z" 
+},
+// wallet
+{
+    "_id":"507f191e810c19729de860ea",
+    "network": "TRC | ERC | ...",
+    "transferFee": 1.2, // tether,
+    "walletAddress": "32wqaseqw213dwq2132sdsw",
+    "createdAt": "2021-05-19T16:07:20.029Z",
+    "deletedAt": "2021-05-19T16:07:20.029Z"
+},
+
+// pricing
+{
+    "_id": "507f191e810c19729de860ea",
+    "source": "ExNovin | BitTwentyFour | IranTether | OnPay",
+    "buy": 232441,
+    "sell": 236122.54,
+    "createdAt": "2021-05-19T16:07:20.029Z"
+},
+
+
+// trade
+{
+    "_id":"507f191e810c19729de860ea",
+    "invoiceNumber":  "20210612001",
+    "user": {
+        "_id": "507f191e810c19729de860ea",
+        "firstName": "Mohammadreza",
+        "lastName": "Rahimiangolkhandani",
+        "phone": "+98912806914",
+        "email": "golkhandani@gmail.com"
+    },
+    "ip":"113.13.123.1",
+    "paymentAddress": "IR12331242315098743312 | null",
+    "walletAddress": "32wqaseqw213dwq2132sdsw",
+    "wallet": {
+        "_id":"507f191e810c19729de860ea",
+        "network": "TRC | ERC | ...",
+        "transferFee": 1.2, // tether,
+        "walletAddress": "32wqaseqw213dwq2132sdsw"
+    },
+    "amount": 600,
+    "totalPrice": 1200000,
+    "status": "expired | gateway_cancelled | gateway_rejected | gateway_paid | binance_rejected | binance_transferred | done",
+    "pricing": {
+        "_id": "507f191e810c19729de860ea",
+        "source": "OnPay",
+        "buy": 232441,
+        "sell": 236122.54
+    },
+    "payment": {
+        "source": "Zibal",
+        "referenceId": 74541130032,
+        "paidAt": "2021-05-19T16:07:20.029Z",
+        "url": "http://payment.url"
+    },
+    "expiredAt": "2021-05-19T16:07:20.029Z",
+    "createdAt":"2021-05-19T16:07:20.029Z",
+    "updatedAt":"2021-05-19T16:07:20.029Z"
+}
+]
