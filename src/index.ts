@@ -3,7 +3,7 @@ import "reflect-metadata";
 
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import helmet from 'helmet';
+//import helmet from 'helmet';
 
 
 import express, { NextFunction, Request, Response } from 'express';
@@ -60,7 +60,7 @@ async function main() {
 
     // Security
     if (process.env.NODE_ENV === 'production') {
-        app.use(helmet());
+        //app.use(helmet());
     }
 
     /************************************************************************************
