@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 
 import mysql from "mysql2/promise";
 import * as cheerio from 'cheerio';
+import { Pricing } from '@entities/price.entity';
 
 
 
@@ -20,6 +21,10 @@ const webServices = {
     "IranTether": {
         "SourceName": "IranTether",
         "URL": "https://tetheriran.com/cryptocurrency/%D8%AA%"
+    },
+    "TokenBaz": {
+        "SourceName": "TokenBaz",
+        "URL": "https://tokenbaz.com/get/prices?coin=usdt&sort=buy_price"
     },
     "ExNovin": {
         "SourceName": "ExNovin",
@@ -110,6 +115,27 @@ export interface BitTwentyFour {
 }
 
 
+export class TokenBazCoin {
+    class_name:           string;
+    logo:                 string;
+    label:                string;
+    title:                string;
+    type_label:           string;
+    site_with_source:     string;
+    rate:                 number;
+    exchange_title:       string;
+    id:                   number;
+    fee:                  string;
+    total_rate:           number;
+    buy_price:            string;
+    buy_price_formatted:  string;
+    sell_price:           string;
+    sell_price_formatted: string;
+    is_best_buy_price:    number;
+    is_best_sell_price:   number;
+}
+
+
 
 
 export async function getAbanTetherPrice() {
@@ -195,6 +221,33 @@ export async function getIranTetherPrice() {
             Source: webServices.IranTether.SourceName
         }
         return tetherPrice;
+    }
+}
+
+export async function getTokenBazPrice(): Promise<Pricing[]> {
+    try {
+        const data = await fetch(webServices.TokenBaz.URL, {
+            method: 'get',
+        });
+        const coins: TokenBazCoin[] =  await data.json()
+        
+        return coins.map(coin => {
+            const tetherPrice: Pricing  = new Pricing({
+                buy: parseFloat(coin.buy_price),
+                sell: parseFloat(coin.sell_price),
+                source: coin.exchange_title,
+                createdAt : new Date()
+            })
+            return tetherPrice;
+        });
+    } catch (error) {
+        const tetherPrice: Pricing = new Pricing({
+            buy: 0,
+            sell: 0,
+            source: webServices.TokenBaz.SourceName,
+            createdAt: new Date()
+        })
+        return [tetherPrice];
     }
 }
 

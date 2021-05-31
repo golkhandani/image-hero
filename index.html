@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #line-chart {
+            display: block;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="line-chart"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.0.0"></script>
+    <script src="./Pricing-TokenBaz.js"></script>
+
+    <script>
+        var groupBy = function(xs, key) {
+            return xs.reduce(function(rv, x) {
+                (rv[x[key]] = rv[x[key]] || []).push(x);
+                return rv;
+            }, {});
+        };
+        const ctx = document.querySelector("#line-chart").getContext('2d');
+        const groupedData = groupBy(data,'source');
+
+        fetch("http://localhost:3000/api/pricing/last-day")
+        .then(async response => {
+            const jsonResponse = await response.json()
+            const prices = jsonResponse.data.map(item => {
+                const color = `${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}`
+                
+                const sortedData = item.buyChart
+                const line = {
+                    data: sortedData,
+                    label: item.source,
+                    borderColor: "#3e95cd",
+                    
+                    fill: false,
+                    backgroundColor: [
+                        `rgba(${color}, 1)`
+                    ],
+                    borderColor: [
+                        `rgba(${color}, 1)`
+                    ],
+                    borderWidth: 2,
+                    lineTension: 0.500
+                }
+                return line;
+            })
+            const config = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: prices
+                },
+                options: {
+                    elements: {
+                        point:{
+                            radius: 0
+                        }
+                    },
+                    plugins: {
+                        zoom: {
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                },
+                                pinch: {
+                                    enabled: true
+                                },
+                                mode: 'xy',
+                            }
+                        }
+                    },
+                    scales: {
+                    }
+                }
+            };
+            new Chart(ctx, config);
+        })
+    </script>
+</body>
+</html>

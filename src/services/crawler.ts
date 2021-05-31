@@ -1,7 +1,7 @@
 
 
 import cron from "node-cron"
-import { getAbanTetherPrice, getBitTwentyFourTetherPrice, getExNovinTetherPrice, getIranTetherPrice, getTetherLandPrice, TetherPrice } from ".";
+import { getAbanTetherPrice, getBitTwentyFourTetherPrice, getExNovinTetherPrice, getIranTetherPrice, getTetherLandPrice, getTokenBazPrice, TetherPrice } from ".";
 import mysql from "mysql2/promise";
 import { Collection, Db, ObjectId } from "mongodb";
 import moment from "moment";
@@ -89,11 +89,8 @@ export async function runCrawlerScheduler(db: mysql.Connection) {
 
 export async function runMongoCrawlerScheduler(priceCollection: Collection<Pricing>) {
 
-    cron.schedule('*/10 * * * * *', async () => {
+    cron.schedule('*/5 * * * * *', async () => {
         console.log(new Date(), 'running a task every 1 minutes to get all prices');
-
-
-
         try {
             const [
                 abanTetherPrice,
@@ -166,6 +163,51 @@ export async function runMongoCrawlerScheduler(priceCollection: Collection<Prici
 
     });
 
+
+
+}
+
+
+export async function runTokenBazCrawler(priceCollection: Collection<Pricing>) {
+
+    cron.schedule('*/60 * * * * *', async () => {
+        console.log(new Date(), 'running a task every 1 minutes to get all prices'); 
+       try {
+        const tokenBazPriceList = await getTokenBazPrice();
+        const prices: Pricing[] = tokenBazPriceList.filter(item => item?.buy != 0 && item?.sell != 0);
+        let onPayTetherPrice = new Pricing({
+            source: "OnPay",
+            buy: 0,
+            sell: 0,
+            createdAt: moment().toDate()
+        });
+        const count = prices.length;
+        // get config and then calculate the main price
+
+
+
+
+        // Add price to database
+        for (let index = 0; index < count; index++) {
+            const price = prices[index];
+            onPayTetherPrice.buy += price!.buy / count;
+            onPayTetherPrice.sell += price!.sell / count;
+
+        }
+        if (onPayTetherPrice.buy !== 0 && onPayTetherPrice.sell !== 0) {
+            await priceCollection.insertMany([onPayTetherPrice].concat(prices));
+        }
+
+        console.dir({
+            counter: counter++,
+            prices: JSON.stringify(prices),
+            onPayTetherPrice: JSON.stringify(onPayTetherPrice)
+        }, { depth: null, colors: true })
+       } catch (error) {
+        console.log(error);
+       }
+    });
+    
 
 
 }

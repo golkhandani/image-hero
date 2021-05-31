@@ -13,7 +13,7 @@ import 'express-async-errors';
 import logger from '@shared/logger';
 // get the client
 import mysql from "mysql2/promise";
-import { runCrawlerScheduler, runMongoCrawlerScheduler } from './services/crawler';
+import { runCrawlerScheduler, runMongoCrawlerScheduler, runTokenBazCrawler } from './services/crawler';
 import { MongoConnection } from '@shared/database';
 import { UserRouter } from './routes/user';
 import { UserService } from './services/user';
@@ -24,73 +24,17 @@ import { TradeRouter } from '@routes/trade';
 import { TradeService } from '@services/trade';
 import { ZibalPayment } from '@shared/zibal.helper';
 import { Trade } from '@entities/trade.entity';
-
+import { PricingRouter } from '@routes/pricing';
+import { PricingService } from '@services/pricing';
+import  cors from 'cors';
 // create the connection to database
 // Start the server
 async function main() {
 
     const mongoInstance = await MongoConnection.getInstance();
-    
-    
-    const apiKey= 'rKfO3Z2SPyEf0ttH7k6BghhNLB7EumOpvxQiwJAlCPtEHrxmAQGisThCvaw8otJs';
-    const apiSecret = 'Ywkyge1lj4N45aDO7e4G2jzEeNAU3izjmk1NhIcEY1T6W9joeNQgUcYue63WqT8G';
-    const crypto = require('crypto');
-    const fetch = require('node-fetch');
-    function signature(query_string:string) {
-        return crypto
-            .createHmac('sha256', apiSecret)
-            .update(query_string)
-            .digest('hex');
-    }
-    const qrs = `coin=USDT&withdrawOrderId=1373805golkhandani&network=TRX&address=TR1KnTju1T9oyrosFLLPsMcWzNmZgbbWw8&amount=50&timestamp=${Date.now()}`
-    console.log(Date.now());
-    console.log('1621769231');
-    
-    
-    const sig = `&signature=${signature(qrs)}`
-    const binanceApi = await fetch(
-        `https://api.binance.com/sapi/v1/capital/withdraw/apply?${qrs}${sig}`,
-        {
-            method: 'post',
-            headers: {
-                'X-MBX-APIKEY': apiKey,
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-
-    
-    const binanceApiData = await binanceApi.json();
-    console.log(binanceApiData);
-
-
-    const qrs_withdraw_history = `coin=USDT&status=&offset=&limit=100&startTime=&endTime=&timestamp=${Date.now()}`;
-    const sig_withdraw_history = `&signature=${signature(qrs_withdraw_history)}`
-    const binanceApi_withdraw = await fetch(
-        `https://api.binance.com/sapi/v1/capital/withdraw/history?${qrs_withdraw_history}${sig_withdraw_history}`,
-        {
-            method: 'get',
-            headers: {
-                'X-MBX-APIKEY': apiKey,
-                'Content-Type': 'application/json'
-            }
-        }
-    );
-    // const binanceApiData_withdraw = await binanceApi_withdraw.json();
-    // console.log(binanceApiData_withdraw);
-    
-
-   
-    //
-    // const mysqlInstance = await mysql.createConnection({
-    //     host: 'localhost',
-    //     port: 3306,
-    //     user: 'root',
-    //     password: "password",
-    //     database: 'OnPay'
-    // });
 
     // runMongoCrawlerScheduler(mongoInstance.collection(Pricing.name));
+    runTokenBazCrawler(mongoInstance.collection(Pricing.name + "-TokenBaz"))
     const port = Number(process.env.PORT || 3000);
 
    
@@ -138,6 +82,14 @@ async function main() {
     // const tradeRouter = new TradeRouter(tradeService).setupRoutes();
     // app.use('/api', authRouter);
     // app.use('/api', tradeRouter);
+
+     app.use(cors())
+    const pricingService = new PricingService(
+        mongoInstance.collection(Pricing.name + "-TokenBaz"),
+    );
+    const pricingRouter = new PricingRouter(pricingService).setupRoutes();
+    app.use('/api', pricingRouter);
+
     // Print API errors
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
