@@ -3,7 +3,6 @@ import { ObjectId } from "mongodb";
 
 export enum PricingSource {
   afratether = "afratether",
-  'salam-crypto' = "salam-crypto",
   nobitex = "nobitex",
   wallex = "wallex",
   arzinja = "arzinja",
@@ -19,6 +18,7 @@ export enum PricingSource {
   exnovin = "exnovin",
   bittestan = "bittestan",
   
+  'salam-crypto' = "salam-crypto",
   'OnPay' = "OnPay"
 }
 export const ourSource = PricingSource.OnPay;

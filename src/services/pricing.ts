@@ -69,7 +69,8 @@ export class PricingService {
       {
         '$match': {
           'createdAt': {
-            '$gte': requestedTime
+            '$gte': query.from,
+            '$lte': query.to
           },
           source: query.source
         }
