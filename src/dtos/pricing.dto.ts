@@ -8,7 +8,7 @@ export class GetLastDayCandlePricingDto {
   source: PricingSource = PricingSource.OnPay;
 
   @IsOptional()
-  @IsIn([ 15,30,60, 24 * 60 ])
+  @IsIn([ 1, 5, 10, 15, 30, 60, 24 * 60 ])
   @Type(() => Number)
   candle: number = 15;
 }
