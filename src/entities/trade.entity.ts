@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { Price } from "./price.entity";
+import { Pricing } from "./price.entity";
 import { User } from "./user.entity";
 
 export enum TradeType {
@@ -38,7 +38,7 @@ export class Trade {
   walletAddress?: string;
   bankAddress?: string;
   amount: number;
-  price: Price;
+  price: Pricing;
   status: TradeStatus;
   payment?: TradePayment;
   createdAt: Date;

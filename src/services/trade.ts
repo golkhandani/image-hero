@@ -1,5 +1,5 @@
 import { CreateBuyTradeDto, CreateSellTradeDto, ConfirmTradeDto, VerifyBuyTradeDto } from "@dtos/trade.dto";
-import { ourSource, Price } from "@entities/price.entity";
+import { ourSource, Pricing } from "@entities/price.entity";
 import { Trade, TradeStatus, TradeType } from "@entities/trade.entity";
 import { User } from "@entities/user.entity";
 import { priceExpirationMinute } from "@shared/constants";
@@ -13,7 +13,7 @@ import { Collection, ObjectId } from "mongodb";
 export class TradeService {
 
   constructor(
-    private readonly priceCollection: Collection<Price>,
+    private readonly priceCollection: Collection<Pricing>,
     private readonly tradeCollection: Collection<Trade>,
     private readonly payment: ZibalPayment,
   ) { }

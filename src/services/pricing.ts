@@ -17,7 +17,8 @@ export class PricingService {
         '$match': {
           'createdAt': {
             '$gte': requestedTime
-          }
+          },
+          'source' :{ $ne: 'OnPay'}
         }
       }, {
         '$sort': {
@@ -54,6 +55,11 @@ export class PricingService {
             }
           }
         }
+      },
+      {
+        '$sort': {
+          'source': -1
+        }
       }
     ];
     return await this.priceCollection.aggregate(pipeline).toArray();
@@ -61,7 +67,7 @@ export class PricingService {
 
 
   async getLastDayCandlePricing(query: GetLastDayCandlePricingDto): Promise<Pricing[]> {
-    console.log(query);
+
     
     let now = new Date();
     let requestedTime = new Date(new Date().setDate(now.getDate() - 1));
