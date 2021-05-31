@@ -8,6 +8,8 @@ export class MongoConnection {
 
     public static async getInstance(): Promise<Db> {
         if (!this.instance) {
+            console.log(this.url);
+            
             const connection = await MongoClient.connect(this.url!,{ useUnifiedTopology: true });
             this.instance = connection.db("OnPay");
         }

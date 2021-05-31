@@ -295,7 +295,7 @@
             const source = sourceSelectBox.value || "OnPay"
             const from = (fromDate.value || moment().format('YYYY-MM-DD')) + ' 00:00';
             const to = (toDate.value || moment().format('YYYY-MM-DD')) + ' 23:59';
-            fetch("http://localhost:3000/api/pricing/last-day-candle" + `?candle=${candle}&source=${source}&from=${from}&to=${to}`)
+            fetch("/api/pricing/last-day-candle" + `?candle=${candle}&source=${source}&from=${from}&to=${to}`)
                 .then(async response => {
                     const jsonResponse = await response.json()
 
