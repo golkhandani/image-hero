@@ -83,7 +83,7 @@ async function main() {
     // app.use('/api', authRouter);
     // app.use('/api', tradeRouter);
 
-     app.use(cors())
+    app.use(cors())
     const pricingService = new PricingService(
         mongoInstance.collection(Pricing.name + "-TokenBaz"),
     );
