@@ -171,7 +171,7 @@ export async function runMongoCrawlerScheduler(priceCollection: Collection<Prici
 export async function runTokenBazCrawler(priceCollection: Collection<Pricing>) {
 
     cron.schedule('*/60 * * * * *', async () => {
-        // console.log(new Date(), 'running a task every 1 minutes to get all prices'); 
+        console.log(new Date(), 'running a task every 1 minutes to get all prices'); 
        try {
         const tokenBazPriceList = await getTokenBazPrice();
         const prices: Pricing[] = tokenBazPriceList.filter(item => item?.buy != 0 && item?.sell != 0);
