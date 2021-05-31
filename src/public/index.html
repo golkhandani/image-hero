@@ -35,6 +35,7 @@
         <label for="source">Choose a Source:</label>
 
         <select name="source" id="price-source">
+            <option value="OnPay">OnPay</option>
             <option value="afratether">Afra Tether</option>
             <option value="nobitex">Nobitex</option>
             <option value="wallex">Wallex</option>
@@ -51,7 +52,7 @@
             <option value="exnovin">Exnovin</option>
             <option value="bittestan">Bittestan</option>
             <option value="salam-crypto">salam-crypto</option>
-            <option value="OnPay">OnPay</option>
+            
         </select>
 
         <label for="from">from date:</label>
@@ -70,76 +71,6 @@
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.0.0"></script>
     <script src="./Pricing-TokenBaz.js"></script> -->
-
-    <script>
-        var groupBy = function(xs, key) {
-            return xs.reduce(function(rv, x) {
-                (rv[x[key]] = rv[x[key]] || []).push(x);
-                return rv;
-            }, {});
-        };
-        const ctxAll = document.querySelector("#line-chart-all").getContext('2d');
-        ctxAll.canvas.width = 1000;
-        ctxAll.canvas.height = 200;
-        // const groupedData = groupBy(data,'source');
-
-        fetch("http://localhost:3000/api/pricing/last-day")
-        .then(async response => {
-            const jsonResponse = await response.json()
-            const prices = jsonResponse.data.map(item => {
-                const color = `${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}`
-                
-                const sortedData = item.buyChart
-                const line = {
-                    data: sortedData,
-                    label: item.source,
-                    borderColor: "#3e95cd",
-                    
-                    fill: false,
-                    backgroundColor: [
-                        `rgba(${color}, 1)`
-                    ],
-                    borderColor: [
-                        `rgba(${color}, 1)`
-                    ],
-                    borderWidth: 2,
-                    lineTension: 0.500
-                }
-                return line;
-            })
-            const config = {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: prices
-                },
-                options: {
-                    elements: {
-                        point:{
-                            radius: 0
-                        }
-                    },
-                    plugins: {
-                        zoom: {
-                            zoom: {
-                                wheel: {
-                                    enabled: true,
-                                },
-                                pinch: {
-                                    enabled: true
-                                },
-                                mode: 'xy',
-                            }
-                        }
-                    },
-                    scales: {
-                    }
-                }
-            };
-            new Chart(ctxAll, config);
-        })
-    </script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@1.26.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.0.1/dist/chart.js"></script>
@@ -147,6 +78,73 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.0.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
     <script src="./chartjs-chart-financial.js" type="text/javascript"></script>
+    <script>
+        const ctxAll = document.querySelector("#line-chart-all").getContext('2d');
+        ctxAll.canvas.width = 1000;
+        ctxAll.canvas.height = 400;
+        // const groupedData = groupBy(data,'source');
+        var chartAll;
+        function fetchAllPrice() {
+            fetch("/api/pricing/last-day")
+                .then(async response => {
+                    const jsonResponse = await response.json()
+                    const prices = jsonResponse.data.map(item => {
+                        const color = `${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}`
+
+                        const sortedData = item.buyChart
+                        const line = {
+                            data: sortedData,
+                            label: item.source,
+                            borderColor: "#3e95cd",
+
+                            fill: false,
+                            backgroundColor: [
+                                `rgba(${color}, 1)`
+                            ],
+                            borderColor: [
+                                `rgba(${color}, 1)`
+                            ],
+                            borderWidth: 2,
+                            lineTension: 0.500
+                        }
+                        return line;
+                    })
+                    const config = {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: prices
+                        },
+                        options: {
+                            elements: {
+                                point: {
+                                    radius: 0
+                                }
+                            },
+                            plugins: {
+                                zoom: {
+                                    zoom: {
+                                        wheel: {
+                                            enabled: true,
+                                        },
+                                        pinch: {
+                                            enabled: true
+                                        },
+                                        mode: 'xy',
+                                    }
+                                }
+                            },
+                            scales: {
+                            }
+                        }
+                    };
+                    chartAll = new Chart(ctxAll, config)
+                })
+        }
+        fetchAllPrice();
+    </script>
+
+
     <script>
         var ctx = document.getElementById('line-chart').getContext('2d');
         ctx.canvas.width = 1000;
@@ -177,13 +175,13 @@
                 },
             }
         });
-        
+
         const sourceSelectBox = document.getElementById("price-source")
         const candleSelectBox = document.getElementById("candle")
-        
+
         const fromDate = document.getElementById("from")
         const toDate = document.getElementById("to")
-        
+
         candleSelectBox.addEventListener('change', e => {
             fetchData();
         });
@@ -235,7 +233,7 @@
                     const jsonResponse = await response.json()
 
                     // START FINANCIAL CHART
-                   
+
 
 
                     barData = jsonResponse.data.map(item => {
@@ -249,12 +247,9 @@
                             c: item.close
                         };
                     })
-                
-                    function lineData() { return barData.map(d => { return { x: d.x, y: d.c } }) };
 
-                    
+                    function lineData() { return barData.map(d => { return { x: d.x, y: d.c } }) };
                     updateChart()
-            
                     // END FINANCIAL CHART
                 })
 

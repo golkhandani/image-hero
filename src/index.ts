@@ -27,6 +27,7 @@ import { Trade } from '@entities/trade.entity';
 import { PricingRouter } from '@routes/pricing';
 import { PricingService } from '@services/pricing';
 import  cors from 'cors';
+import path from 'path';
 // create the connection to database
 // Start the server
 async function main() {
@@ -61,6 +62,18 @@ async function main() {
     if (process.env.NODE_ENV === 'production') {
         app.use(helmet());
     }
+
+    /************************************************************************************
+     *                              Serve front-end content
+     ***********************************************************************************/
+
+    // const viewsDir = path.join(__dirname, 'views');
+    // app.set('views', viewsDir);
+    const staticDir = path.join(__dirname, 'public');    
+    app.use(express.static(staticDir));
+    // app.get('*', (req: Request, res: Response) => {
+    //     res.sendFile('index.html', { root: viewsDir });
+    // });
 
     // Add APIs
     // setup services
@@ -101,18 +114,7 @@ async function main() {
 
 
 
-    /************************************************************************************
-     *                              Serve front-end content
-     ***********************************************************************************/
-
-    // const viewsDir = path.join(__dirname, 'views');
-    // app.set('views', viewsDir);
-    // const staticDir = path.join(__dirname, 'public');
-    // app.use(express.static(staticDir));
-    // app.get('*', (req: Request, res: Response) => {
-    //     res.sendFile('index.html', { root: viewsDir });
-    // });
-
+    
 
     // app.set("db", mysqlInstance);
     app.set("mongo", mongoInstance);
