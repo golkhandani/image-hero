@@ -104,16 +104,16 @@ export class PricingService {
             }
           },
           'max': {
-            '$max': '$buy'
+            '$max': '$sell'
           },
           'min': {
-            '$min': '$buy'
+            '$min': '$sell'
           },
           'open': {
-            '$first': '$buy'
+            '$first': '$sell'
           },
           'close': {
-            '$last': '$buy'
+            '$last': '$sell'
           }
         }
       }, {
