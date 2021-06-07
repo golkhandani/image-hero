@@ -1,6 +1,6 @@
 {
-  "name": "tetHeroCrawler",
-  "version": "0.0.0",
+  "name": "image-hero-open-source-project",
+  "version": "0.0.1",
   "scripts": {
     "build": "./node_modules/.bin/ts-node build.ts",
     "lint": "eslint . --ext .ts",
@@ -63,8 +63,7 @@
     "build.ts"
   ],
   "dependencies": {
-    "chartjs-plugin-zoom": "^1.0.0",
-    "cheerio": "^1.0.0-rc.9",
+    "@relaycorp/object-storage": "^1.4.2",
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "command-line-args": "^5.1.1",
@@ -76,17 +75,18 @@
     "express-async-errors": "^3.1.1",
     "helmet": "^4.6.0",
     "http-status-codes": "^2.1.4",
+    "image-pal-sharp": "^1.2.2",
     "jet-logger": "^1.0.4",
     "jsonfile": "^6.1.0",
     "module-alias": "^2.2.2",
     "moment": "^2.29.1",
     "mongodb": "^3.6.7",
     "morgan": "^1.10.0",
-    "mysql2": "^2.2.5",
+    "multer": "^1.4.2",
     "node-cron": "^3.0.0",
     "node-fetch": "^2.6.1",
     "reflect-metadata": "^0.1.13",
-    "zibal": "^1.0.2"
+    "sharp": "^0.28.3"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
@@ -99,10 +99,11 @@
     "@types/jsonfile": "^6.0.0",
     "@types/mongodb": "^3.6.14",
     "@types/morgan": "^1.9.2",
-    "@types/mysql2": "github:types/mysql2",
+    "@types/multer": "^1.4.5",
     "@types/node": "^15.3.0",
     "@types/node-cron": "^2.0.3",
     "@types/node-fetch": "^2.5.10",
+    "@types/sharp": "^0.28.3",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
