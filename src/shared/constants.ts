@@ -3,6 +3,12 @@
 import { AdapterType, initObjectStoreClient } from "@relaycorp/object-storage";
 import * as multer from "multer";
 
+
+export const domain = "3000/image"
+export const clearNameRegex = new RegExp(/[^a-zA-Z .]/g);
+
+export const cacheBucketName = 'cache';
+
 export const applicationName = "ImageHero";
 
 export const minioServer = {

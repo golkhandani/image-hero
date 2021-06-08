@@ -12,7 +12,7 @@ import helmet from 'helmet';
 import StatusCodes from 'http-status-codes';
 import morgan from 'morgan';
 import path from 'path';
-import { ImageInfo, ImageTemplate } from '@entities/image.entity';
+import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
 
 // get the client
 // create the connection to database
@@ -82,8 +82,9 @@ async function main() {
     const imageRouter = new ImageRouter(
         mongoInstance.collection<ImageTemplate>(ImageTemplate.name),
         mongoInstance.collection<ImageInfo>(ImageInfo.name),
+        mongoInstance.collection<ImageCache>(ImageCache.name),
     ).setupRoutes();
-    app.use('/api', imageRouter);
+    app.use('/', imageRouter);
 
 
     // Global error handler

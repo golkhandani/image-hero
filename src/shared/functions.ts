@@ -1,3 +1,5 @@
+import { ImageManipulationDto, UploadImageDto } from '@dtos/image.dto';
+import sharp from 'sharp';
 import logger from './logger';
 
 export const pErr = (err: Error) => {
@@ -28,4 +30,54 @@ export const getColorFromBuffer = (buffer: Buffer): Promise<string[]> => {
 
         });
     })
+}
+
+export const imageManipulation = (
+    file: Express.Multer.File,
+    options: UploadImageDto,
+): Promise<ImageManipulationDto> => {
+    return new Promise(async (resolve, reject) => {
+        const image = sharp(
+            file.buffer,
+            {
+                failOnError: options.failOnError,
+                limitInputPixels: options.limitInputPixels,
+                sequentialRead: options.sequentialRead,
+                density: options.density,
+                pages: options.pages,
+            },
+        );
+        const originalImageInfo = await image.metadata();
+        delete originalImageInfo.icc;
+        delete originalImageInfo.iptc;
+        delete originalImageInfo.tifftagPhotoshop;
+
+
+
+        const imageBuffer = await image.resize(
+            {
+                width: options.width || originalImageInfo.width,
+                height: options.height || originalImageInfo.height,
+                fit: options.fit || sharp.fit.cover,
+                position: options.position || sharp.strategy.attention,
+            }
+        ).withMetadata(
+            {
+                ...(options.copyright && {
+                    exif: {
+                        IFD0: {
+                            Copyright: options.copyright
+                        }
+                    }
+                })
+            }
+        ).toBuffer({ resolveWithObject: true });
+
+
+        resolve({
+            fileBuffer: imageBuffer.data,
+            originalImageInfo,
+            manipulatedImageInfo: imageBuffer.info
+        })
+    });
 }
