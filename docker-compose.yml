@@ -13,7 +13,7 @@ services:
     environment:
       - MINIO_ACCESS_KEY=minio-access-key
       - MINIO_SECRET_KEY=minio-secret-key
-      - MINIO_DEFAULT_BUCKETS=cache
+      - MINIO_DEFAULT_BUCKETS=cache,images
     volumes:
       - ./data/minio:/data
     networks:
@@ -59,7 +59,9 @@ services:
       - MINIO_DOMAIN=http://minio:9000
       - MINIO_TLS=false
       - MINIO_CACHE_BUCKET=cache
+      - MINIO_MAIN_BUCKET=images
       - DATABASE_URI=mongodb://image_hero:image_hero_password@mongodb:27017/ImageHero
+      - CACHE_CLEANUP_MINUTE=10
       - JET_LOGGER_MODE=CONSOLE
       - JET_LOGGER_FILEPATH=jet-logger.log
       - JET_LOGGER_TIMESTAMP=TRUE

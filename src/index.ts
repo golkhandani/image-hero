@@ -4,7 +4,14 @@ import 'reflect-metadata';
 
 import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
 import { ImageRouter } from '@routes/image';
+import {
+    applicationPort,
+    cacheBucketName,
+    removeCacheCronTime,
+    removeCacheLastGetAtFromMinutes,
+} from '@shared/constants';
 import { dbEmitter, DbState, MongoConnection } from '@shared/database';
+import { s3Client } from '@shared/functions';
 import logger from '@shared/logger';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -12,9 +19,10 @@ import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import StatusCodes from 'http-status-codes';
+import moment from 'moment';
 import morgan from 'morgan';
+import cron from 'node-cron';
 import path from 'path';
-import { applicationPort } from '@shared/constants';
 
 
 
@@ -78,9 +86,12 @@ async function main() {
     });
 
 
+
+
+
     /************************************************************************************
     *                              Database initialization
-   ************************************************************************************/
+    ************************************************************************************/
     const mongoInstance = await MongoConnection.getInstance();
 
 
@@ -95,6 +106,25 @@ async function main() {
         mongoInstance.collection<ImageCache>(ImageCache.name),
     ).setupRoutes();
     app.use('/', imageRouter);
+
+    /************************************************************************************
+    *                             cron job ro remove unused cached file
+    ************************************************************************************/
+
+
+    cron.schedule(removeCacheCronTime, async () => {
+        const imageCacheCollection = mongoInstance.collection<ImageCache>(ImageCache.name);
+        const query = {
+            lastGetAt: { $lt: moment().add(-1 * removeCacheLastGetAtFromMinutes, 'minute').toDate() }
+        };
+        imageCacheCollection.find(query).forEach((file) => {
+            s3Client.deleteObject(file.fileAddress, cacheBucketName).then(() => {
+                imageCacheCollection.findOneAndDelete({ _id: file._id });
+            });
+        });
+
+
+    })
 
 
     // Global error handler
