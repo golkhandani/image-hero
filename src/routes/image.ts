@@ -41,7 +41,7 @@ export class ImageRouter {
             try {
                 return res.send(apiResponse<any>({ data: "ping" }));
             } catch (error) {
-                catchError(error, res);
+                catchError(error, req, res);
             }
         });
 
@@ -65,7 +65,7 @@ export class ImageRouter {
                 const imageTemplate = (await this.imageTemplateCollection.insertOne(options)).ops[0];
                 return res.send(apiResponse<ImageTemplate>({ data: imageTemplate }));
             } catch (error) {
-                catchError(error, res);
+                catchError(error, req, res);
             }
         });
 
@@ -156,7 +156,7 @@ export class ImageRouter {
                     data: imageInfo
                 }));
             } catch (error) {
-                catchError(error, res);
+                catchError(error, req, res);
             }
         });
 
@@ -176,7 +176,7 @@ export class ImageRouter {
                 }
                 return res.send(apiResponse<ImageInfo>({ data: imageInfo! }));
             } catch (error) {
-                catchError(error, res);
+                catchError(error, req, res);
             }
 
         })
@@ -363,9 +363,7 @@ export class ImageRouter {
                 }
 
             } catch (error) {
-                console.log(error);
-
-                catchError(error, res);
+                catchError(error, req, res);
             }
         });
 

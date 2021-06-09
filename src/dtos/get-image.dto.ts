@@ -7,7 +7,7 @@ import { toBoolean } from '@shared/transformer/to-boolean.transformer';
 import { toColorHex } from '@shared/transformer/to-colorhex.transformer';
 import { toInt } from '@shared/transformer/to-int.transformer';
 import { Transform } from 'class-transformer';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, Min, ValidateIf } from 'class-validator';
 
 
 
@@ -182,6 +182,8 @@ export class GetImageQueryDto {
 
     @IsOptional()
     @IsNumber()
+    @Min(0)
+    @Max(100)
     @Transform(toInt)
     // quality
     /**
@@ -236,6 +238,8 @@ export class GetImageQueryDto {
     @ValidateIf(isPngEnabled)
     @IsOptional()
     @IsNumber()
+    @Min(2)
+    @Max(10)
     @Transform(toInt)
     /**
      * Compression level of png format
