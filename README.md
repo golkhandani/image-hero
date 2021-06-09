@@ -4,10 +4,10 @@ Image manipulator using sharp api
 # Technologies
 
 ## Sharp
-`Sharp` is a image editor for nodejs with c/c++ code which makes it fast and reliable;
+`Sharp` is an image editor for nodejs with c/c++ code which makes it fast and reliable;
 We also used `image-pal-sharp` plugin in order to extract colors of image as hex;
 
-You can see the full documentation of [sharp](https://sharp.pixelplumbing.com/) and for any related questions!
+You can see the full documentation of [sharp](https://sharp.pixelplumbing.com/) and [image-pal](https://github.com/asilvas/image-pal) and for any related questions!
 
 
 ## Minio
