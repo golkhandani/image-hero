@@ -180,6 +180,12 @@ export class ImageRouter {
             }
 
         })
+
+        /**
+         * All the images which are uploaded by this system 
+         * will be stored in a minio bucket
+         * In order to access an image below endpoint is available! 
+         */
         this.router.get("/*", async (req, res) => {
             if (req.url == "/favicon.ico") return res.end();
             try {
