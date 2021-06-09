@@ -20,7 +20,7 @@
     "exec": "./node_modules/.bin/ts-node -r tsconfig-paths/register ./src"
   },
   "_moduleAliases": {
-    "@daos": "dist/daos",
+    "@enums": "dist/enums",
     "@dtos": "dist/dtos",
     "@entities": "dist/entities",
     "@shared": "dist/shared",
@@ -67,6 +67,7 @@
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "command-line-args": "^5.1.1",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -78,6 +79,7 @@
     "image-pal-sharp": "^1.2.2",
     "jet-logger": "^1.0.4",
     "jsonfile": "^6.1.0",
+    "limax": "^3.0.0",
     "module-alias": "^2.2.2",
     "moment": "^2.29.1",
     "mongodb": "^3.6.7",
@@ -90,6 +92,7 @@
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
+    "@types/compression": "^1.7.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/cors": "^2.8.10",
     "@types/express": "^4.17.11",

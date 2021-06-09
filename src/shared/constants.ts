@@ -4,7 +4,7 @@ import { AdapterType, initObjectStoreClient } from "@relaycorp/object-storage";
 import * as multer from "multer";
 
 
-export const domain = "3000/image"
+export const domain = "http://localhost:3000";
 export const clearNameRegex = new RegExp(/[^a-zA-Z .]/g);
 
 export const cacheBucketName = 'cache';
@@ -15,22 +15,5 @@ export const minioServer = {
     endpoint: "http://localhost:9000",
     access: "minio-access-key",
     secret: "minio-secret-key",
+    tls: false
 };
-
-export const s3Client = initObjectStoreClient(
-    "minio" as AdapterType,
-    minioServer.endpoint,
-    minioServer.access,
-    minioServer.secret,
-    false
-);
-
-
-
-
-export const uploaderMemoryStorage = multer.memoryStorage();
-const uploaderOptions: multer.Options = {
-    storage: uploaderMemoryStorage
-};
-
-export const uploader = multer.default(uploaderOptions);

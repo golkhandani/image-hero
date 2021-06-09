@@ -1,6 +1,32 @@
-import { ImageManipulationDto, UploadImageDto } from '@dtos/image.dto';
+import { GetImageQueryDto, ImageManipulationDto } from '@dtos/image.dto';
+import { PostImageDto } from '@dtos/post-image.dto';
+import { ImageType } from '@enums/image-type.enum';
+import { AdapterType, initObjectStoreClient } from '@relaycorp/object-storage';
+import multer from 'multer';
 import sharp from 'sharp';
+import { minioServer } from './constants';
 import logger from './logger';
+
+
+
+export const s3Client = initObjectStoreClient(
+    "minio" as AdapterType,
+    minioServer.endpoint,
+    minioServer.access,
+    minioServer.secret,
+    minioServer.tls
+);
+
+
+
+
+export const uploaderMemoryStorage = multer.memoryStorage();
+const uploaderOptions: multer.Options = {
+    storage: uploaderMemoryStorage
+};
+
+export const uploader = multer(uploaderOptions);
+
 
 export const pErr = (err: Error) => {
     if (err) {
@@ -11,6 +37,7 @@ export const pErr = (err: Error) => {
 export const getRandomInt = () => {
     return Math.floor(Math.random() * 1_000_000_000_000);
 };
+
 
 export const getColors = require('image-pal-sharp/lib/rgb');
 
@@ -34,7 +61,7 @@ export const getColorFromBuffer = (buffer: Buffer): Promise<string[]> => {
 
 export const imageManipulation = (
     file: Express.Multer.File,
-    options: UploadImageDto,
+    options: PostImageDto,
 ): Promise<ImageManipulationDto> => {
     return new Promise(async (resolve, reject) => {
         const image = sharp(
@@ -80,4 +107,21 @@ export const imageManipulation = (
             manipulatedImageInfo: imageBuffer.info
         })
     });
+}
+
+
+export function isResizeEnabled(obj: GetImageQueryDto, val: boolean) {
+    return obj.template !== null && obj.rsz;
+}
+
+export function isRotateEnabled(obj: GetImageQueryDto, val: boolean) {
+    return obj.template !== null && obj.rtt != null;
+}
+
+export function isJpegEnabled(obj: GetImageQueryDto, val: boolean) {
+    return obj.template !== null && obj.type == ImageType.jpeg;
+}
+
+export function isPngEnabled(obj: GetImageQueryDto, val: boolean) {
+    return obj.template !== null && obj.type == ImageType.png;
 }

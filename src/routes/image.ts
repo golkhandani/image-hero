@@ -1,7 +1,10 @@
-import { GetImageQueryDto, ImageManipulationDto, PostImageTemplate, Type, UploadImageDto } from '@dtos/image.dto';
+import { GetImageQueryDto } from '@dtos/image.dto';
+import { PostImageTemplate } from '@dtos/post-image-template.dto';
+import { PostImageDto } from '@dtos/post-image.dto';
 import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
-import { cacheBucketName, clearNameRegex, domain, minioServer, s3Client, uploader } from '@shared/constants';
-import { getColorFromBuffer, imageManipulation } from '@shared/functions';
+import { ImageType } from '@enums/image-type.enum';
+import { cacheBucketName, domain, } from '@shared/constants';
+import { getColorFromBuffer, imageManipulation, s3Client, uploader } from '@shared/functions';
 import { apiResponse } from '@shared/helper/api-response.helper';
 import { HttpError } from '@shared/helper/http-error.helper';
 import { validateAndTransformRequest } from '@shared/helper/validate-transform.helper';
@@ -9,6 +12,9 @@ import { catchError } from '@shared/transformer/catch-error.interceptor';
 import { Router } from 'express';
 import { Collection } from 'mongodb';
 import sharp from 'sharp';
+import slug from 'limax';
+import { GetImageInfoDto } from '@dtos/get-image-info.dto';
+import { StatusCodes } from 'http-status-codes';
 
 /**
  * A sample for query string of getting an image
@@ -27,14 +33,14 @@ export class ImageRouter {
         private readonly imageCacheCollection: Collection<ImageCache>,
     ) { }
     setupRoutes() {
-        this.router.get("/image/ping", async (req, res) => {
+        this.router.get("/ping", async (req, res) => {
             try {
                 return res.send(apiResponse<any>({ data: "ping" }));
             } catch (error) {
                 catchError(error, res);
             }
         });
-        this.router.post("/image/template", async (req, res) => {
+        this.router.post("/template", async (req, res) => {
             try {
                 const options = await validateAndTransformRequest(req.body, PostImageTemplate);
                 const imageTemplate = (await this.imageTemplateCollection.insertOne(options)).ops[0];
@@ -43,31 +49,54 @@ export class ImageRouter {
                 catchError(error, res);
             }
         });
-        this.router.post("/image", uploader.single('file'), async (req, res) => {
+        this.router.post("/", uploader.single('file'), async (req, res) => {
             try {
+
+                /************************************************************/
+                /*                                                          */
+                /*          Validate and transform request body             */
+                /*                                                          */
+                /************************************************************/
+                const options = await validateAndTransformRequest(req.body, PostImageDto);
+
                 /************************************************************/
                 /*                                                          */
                 /*   Check the filename for using body or original file     */
                 /*                                                          */
                 /************************************************************/
-                const fileName = req.file.originalname.replace(clearNameRegex, "").replace(".", `_${Date.now()}.`);
-                req.body.file = fileName;
+                /**
+                 * All the name (original or user provided) will be filtered
+                 * using slug (limax module)
+                 * for more information checkout https://github.com/lovell/limax
+                 */
+                let fileName = '';
+                if (options.file) {
+                    /**
+                     * If user provided a custom name we should attach
+                     * the original file extension to the name
+                     */
+                    const liod = req.file.originalname.lastIndexOf(".");
+                    const nl = req.file.originalname.length;
+                    const ext = req.file.originalname.substring(liod, nl);
+                    fileName = slug(req.body.file) + "-" + Date.now().toString() + ext;
+                } else {
+                    fileName = slug(req.file.originalname, {
+                        separateNumbers: true,
+                        separateApostrophes: true,
+                        custom: { '.': '.' }
+                    }).replace("-.", `-${Date.now()}.`);
+                }
+                options.file = fileName;
+
+
 
 
                 /************************************************************/
                 /*                                                          */
-                /*          Validate and transform request body             */
+                /*          Manipulate image and get colors                 */
                 /*                                                          */
                 /************************************************************/
-                const options = await validateAndTransformRequest(req.body, UploadImageDto);
-
-
-                /************************************************************/
-                /*                                                          */
-                /*          Validate and transform request body             */
-                /*                                                          */
-                /************************************************************/
-                const fileAddress = minioServer.endpoint.replace("9000", domain) + `/${options.bucket}/${options.folder}/${options.file}`;
+                const fileAddress = domain + `/${options.bucket}/${options.folder}/${options.file}`;
                 const filePath = `${options.folder}/${options.file}`;
                 const manipulatedImage = await imageManipulation(req.file, options);
                 const imageColors = await getColorFromBuffer(manipulatedImage.fileBuffer!);
@@ -85,12 +114,13 @@ export class ImageRouter {
                 )
                 delete manipulatedImage.fileBuffer;
                 const imageInfo = (await this.imageInfoCollection.insertOne({
-                    fileAddress,
-                    filePath,
-                    fileFolder: options.folder,
+                    colors: imageColors,
+                    fileAddress: fileAddress,
                     fileBucket: options.bucket,
-                    ...manipulatedImage,
-                    colors: imageColors
+                    fileFolder: options.folder,
+                    filePath: `${options.folder}/${options.file}`,
+                    originalImageInfo: manipulatedImage.originalImageInfo!,
+                    manipulatedImageInfo: manipulatedImage.manipulatedImageInfo!
                 })).ops[0]
                 return res.send(apiResponse<ImageInfo>({
                     data: imageInfo
@@ -101,8 +131,22 @@ export class ImageRouter {
         });
 
 
+        this.router.get("/info/:imageId", async (req, res) => {
 
-        this.router.get("/image/*", async (req, res) => {
+            try {
+                const imageId = (await validateAndTransformRequest(req.params, GetImageInfoDto)).imageId;
+                const imageInfo = await this.imageInfoCollection.findOne({ _id: imageId });
+                if (!imageInfo) {
+                    throw new HttpError({ status: StatusCodes.NOT_FOUND, message: "Image with provided id not found!" })
+                }
+                return res.send(apiResponse<ImageInfo>({ data: imageInfo! }));
+            } catch (error) {
+                catchError(error, res);
+            }
+
+        })
+        this.router.get("/*", async (req, res) => {
+            if (req.url == "/favicon.ico") return res.end();
             try {
 
                 /************************************************************/
@@ -114,8 +158,8 @@ export class ImageRouter {
                     requestUrl: req.url,
                 }, { $set: { lastGetAt: new Date() } })).value;
                 if (cashedImage) {
-                    const file = await s3Client.getObject(`${cashedImage.cacheUrl}`, cacheBucketName);
-                    return sharp(file?.body).pipe(res);
+                    const file = await s3Client.getObject(`${cashedImage.fileAddress}`, cacheBucketName);
+                    if (file) return sharp(file?.body).pipe(res);
                 }
 
                 /************************************************************/
@@ -123,7 +167,8 @@ export class ImageRouter {
                 /*      parse url to find image address in minio            */
                 /*                                                          */
                 /************************************************************/
-                const [_, __, bucket, folder] = req.url.split("/");
+                const [_, bucket, folder] = req.url.split("/");
+
                 const filePath = req.url.split(folder)[1].split("?")[0];
                 const file = await s3Client.getObject(`${folder}${filePath}`, bucket);
 
@@ -140,9 +185,8 @@ export class ImageRouter {
                     let options: GetImageQueryDto;
                     if (req.query.template) {
                         const imageTemplate = await this.imageTemplateCollection.findOne({ template: req.query.template as string });
-                        console.log(imageTemplate);
                         if (!imageTemplate) throw new HttpError({ status: 400, message: "Template does not exists!" })
-                        options = imageTemplate as unknown as GetImageQueryDto;
+                        options = await validateAndTransformRequest(imageTemplate, GetImageQueryDto);
                     } else {
                         options = await validateAndTransformRequest(req.query, GetImageQueryDto);
                     }
@@ -183,11 +227,18 @@ export class ImageRouter {
                     /**
                      * All setting related to image resizing of sharp
                      */
-                    if (options.rsz) {
+                    const hasResizeOption = options.w || options.h || options.whp;
+                    if (options.rsz || hasResizeOption) {
                         const resizeOption: sharp.ResizeOptions = {
                             kernel: options.krn,
-                            ...(options.w && { width: options.w || metadata.width }),
-                            ...(options.h && { height: options.h || metadata.height }),
+
+                            // change them based on whp (percentage)
+                            ...(!options.w && options.whp && { width: Math.floor((metadata.width!) * (options.whp / 100)) }),
+                            ...(!options.w && options.whp && { height: Math.floor((metadata.height!) * (options.whp / 100)) }),
+                            // change width or height based on w and h in query
+                            ...(options.w && { width: Math.floor(options.w || metadata.width!) }),
+                            ...(options.w && { height: Math.floor(options.h || metadata.height!) }),
+
                             fit: options.fit,
                             position: options.pos,
                             background: options.bgr,
@@ -200,7 +251,7 @@ export class ImageRouter {
                     /**
                      * All setting related to jpeg format of sharp
                      */
-                    if (options.type == Type.jpeg) {
+                    if (options.type == ImageType.jpeg) {
                         const jpegOption: sharp.JpegOptions = {
                             progressive: options.prg,
                             trellisQuantisation: options.tsq, // Trellis quantization is an algorithm that can improve data compression in DCT-based encoding methods. It is used to optimize residual DCT coefficients after motion estimation in lossy video compression encoders such as Xvid and x264. Trellis quantization reduces the size of some DCT coefficients while recovering others to take their place. 
@@ -213,7 +264,7 @@ export class ImageRouter {
                     /**
                      * All setting related to png format of sharp
                      */
-                    if (options.type == Type.png) {
+                    if (options.type == ImageType.png) {
                         const pngOption: sharp.PngOptions = {
                             progressive: options.prg,
                             compressionLevel: options.cpl, // 1 to 9
@@ -253,7 +304,7 @@ export class ImageRouter {
                         this.imageCacheCollection.insertOne({
                             cacheOptions: cacheOptions,
                             requestUrl: req.url,
-                            cacheUrl: cachePath,
+                            fileAddress: cachePath,
                             // then remove image in cache based on lastGetAt 
                             lastGetAt: new Date()
                         }).then(async () => {
@@ -277,6 +328,8 @@ export class ImageRouter {
                 }
 
             } catch (error) {
+                console.log(error);
+
                 catchError(error, res);
             }
         });

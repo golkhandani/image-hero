@@ -2,6 +2,7 @@ import './pre-start';
 import 'express-async-errors';
 import 'reflect-metadata';
 
+
 import { ImageRouter } from '@routes/image';
 import { dbEmitter, DbState, MongoConnection } from '@shared/database';
 import logger from '@shared/logger';
@@ -13,6 +14,9 @@ import StatusCodes from 'http-status-codes';
 import morgan from 'morgan';
 import path from 'path';
 import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
+
+import compression from 'compression';
+
 
 // get the client
 // create the connection to database
@@ -28,6 +32,8 @@ async function main() {
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
     app.use(cookieParser());
+
+    app.use(compression({ level: 1 }));
 
     // Show routes called in console during development
     if (process.env.NODE_ENV === 'development') {
