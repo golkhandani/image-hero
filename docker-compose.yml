@@ -44,8 +44,10 @@ services:
       target: production
       args:
         - APP_ENV=production
+    deploy:
+      replicas: 2
     ports:
-      - "3000:3000"
+      - "3000"
     depends_on: 
       - minio
       - mongodb
