@@ -46,6 +46,9 @@ services:
         - APP_ENV=production
     ports:
       - "3000:3000"
+    depends_on: 
+      - minio
+      - mongodb
     environment:
       - NODE_ENV=production
       - APPLICATION_NAME=ImageHero

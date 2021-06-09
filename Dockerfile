@@ -1,10 +1,10 @@
 # development stage for local dev environment
-# FROM node:14.16.1 As development
-# WORKDIR /usr/src/app
-# COPY package*.json ./
-# RUN npm install 
-# COPY . .
-# CMD npm run start:dev
+FROM node:14.16.1 As development
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install 
+COPY . .
+CMD npm run start:dev
 
 
 FROM node:14.16.1 As production-build
