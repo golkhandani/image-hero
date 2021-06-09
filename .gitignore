@@ -1,2 +1,7 @@
 /node_modules
 /dist
+.jet-logger.log
+src/pre-start/env/production.env
+src/pre-start/env/development.env
+src/pre-start/env/test.env
+/data

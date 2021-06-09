@@ -3,7 +3,7 @@ import { PostImageTemplate } from '@dtos/post-image-template.dto';
 import { PostImageDto } from '@dtos/post-image.dto';
 import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
 import { ImageType } from '@enums/image-type.enum';
-import { cacheBucketName, domain, } from '@shared/constants';
+import { cacheBucketName, applicationDomain } from '@shared/constants';
 import { getColorFromBuffer, imageManipulation, s3Client, uploader } from '@shared/functions';
 import { apiResponse } from '@shared/helper/api-response.helper';
 import { HttpError } from '@shared/helper/http-error.helper';
@@ -126,7 +126,7 @@ export class ImageRouter {
                 /*          Manipulate image and get colors                 */
                 /*                                                          */
                 /************************************************************/
-                const fileAddress = domain + `/${options.bucket}/${options.folder}/${options.file}`;
+                const fileAddress = applicationDomain + `/${options.bucket}/${options.folder}/${options.file}`;
                 const filePath = `${options.folder}/${options.file}`;
                 const manipulatedImage = await imageManipulation(req.file, options);
                 const imageColors = await getColorFromBuffer(manipulatedImage.fileBuffer!);

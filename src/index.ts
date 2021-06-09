@@ -1,11 +1,12 @@
-import './pre-start';
 import 'express-async-errors';
+import 'module-alias/register';
 import 'reflect-metadata';
 
-
+import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
 import { ImageRouter } from '@routes/image';
 import { dbEmitter, DbState, MongoConnection } from '@shared/database';
 import logger from '@shared/logger';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { NextFunction, Request, Response } from 'express';
@@ -13,9 +14,8 @@ import helmet from 'helmet';
 import StatusCodes from 'http-status-codes';
 import morgan from 'morgan';
 import path from 'path';
-import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
+import { applicationPort } from '@shared/constants';
 
-import compression from 'compression';
 
 
 // get the client
@@ -42,7 +42,11 @@ async function main() {
 
     // Security
     if (process.env.NODE_ENV === 'production') {
-        app.use(helmet());
+        app.use(helmet({
+            contentSecurityPolicy: false,
+            noSniff: false,
+            ieNoOpen: false,
+        }));
     }
 
     /************************************************************************************
@@ -105,7 +109,7 @@ async function main() {
     *                              Setup application
     ************************************************************************************/
 
-    const port = Number(process.env.PORT || 3000);
+    const port = Number(applicationPort);
     app.listen(port, () => {
         logger.info('Express server started on port: ' + port);
     });

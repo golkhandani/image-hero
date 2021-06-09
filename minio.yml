@@ -1,16 +1,65 @@
 version: "3.5"
 
 networks:
-  minio-network:
+  image-hero-network:
     driver: bridge
+    name: image-hero-network
 
 services:
   minio:
     image: "bitnami/minio:latest"
     ports:
-      - "9000:9000"
+      - "9001:9000"
     environment:
       - MINIO_ACCESS_KEY=minio-access-key
       - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_DEFAULT_BUCKETS=cache
+    volumes:
+      - ./data/minio:/data
     networks:
-      - minio-network
+      - image-hero-network
+
+  mongodb:
+    image: "bitnami/mongodb:latest"
+    ports:
+      - "27018:27017"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MONGODB_EXTRA_FLAGS=--wiredTigerCacheSizeGB=2
+      - MONGODB_ENABLE_DIRECTORY_PER_DB=yes
+      - MONGODB_ENABLE_JOURNAL=true
+      - MONGODB_ROOT_PASSWORD=root_password
+      - MONGODB_USERNAME=image_hero
+      - MONGODB_PASSWORD=image_hero_password
+      - MONGODB_DATABASE=ImageHero # same as application name
+    volumes:
+      - ./data/mongo:/bitnami/mongodb
+    networks:
+      - image-hero-network
+
+  node:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - APP_ENV=production
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - APPLICATION_NAME=ImageHero
+      - APPLICATION_DOMAIN=http://localhost:3000
+      - APPLICATION_PORT=3000
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_DOMAIN=http://minio:9000
+      - MINIO_TLS=false
+      - MINIO_CACHE_BUCKET=cache
+      - DATABASE_URI=mongodb://image_hero:image_hero_password@mongodb:27017/ImageHero
+      - JET_LOGGER_MODE=CONSOLE
+      - JET_LOGGER_FILEPATH=jet-logger.log
+      - JET_LOGGER_TIMESTAMP=TRUE
+      - JET_LOGGER_FORMAT=LINE
+    networks:
+      - image-hero-network
