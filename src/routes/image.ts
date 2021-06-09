@@ -1,4 +1,4 @@
-import { GetImageQueryDto } from '@dtos/image.dto';
+import { GetImageQueryDto } from '@dtos/get-image.dto';
 import { PostImageTemplate } from '@dtos/post-image-template.dto';
 import { PostImageDto } from '@dtos/post-image.dto';
 import { ImageCache, ImageInfo, ImageTemplate } from '@entities/image.entity';
@@ -33,6 +33,10 @@ export class ImageRouter {
         private readonly imageCacheCollection: Collection<ImageCache>,
     ) { }
     setupRoutes() {
+        /**
+         * If you use this system in a group of minor systems you can
+         * use this endpoint to get the health check of system
+         */
         this.router.get("/ping", async (req, res) => {
             try {
                 return res.send(apiResponse<any>({ data: "ping" }));
@@ -40,6 +44,21 @@ export class ImageRouter {
                 catchError(error, res);
             }
         });
+
+
+        /**
+         * Due to various number of options available for getting an image 
+         * such as :
+         * type=png&q=1&cpl=9
+         * d=155
+         * rsz=true&w=500&h=200&fit=cover&pos=attention&bgr=ffffff&krn=nearest&fsl=true
+         * blr=1
+         * rtt=94&rtb=155111
+         * Anyone can add a template to system and after that just call get method 
+         * with the template name
+         * for example thumbnail-blur are equal to type=jpeg&whp=20&blr=100
+         */
+
         this.router.post("/template", async (req, res) => {
             try {
                 const options = await validateAndTransformRequest(req.body, PostImageTemplate);
@@ -49,6 +68,17 @@ export class ImageRouter {
                 catchError(error, res);
             }
         });
+
+
+
+        /**
+         * In order to upload a new image to the system below endpoint should be called
+         * Bucket, Folder and file should be provided 
+         * Other options are optional and if someone upload an image with options like: 
+         * density, width, height, fit or cover the manipulated image will be stored in system 
+         * and the original one will be gone for ever !!! :D
+         */
+
         this.router.post("/", uploader.single('file'), async (req, res) => {
             try {
 
@@ -131,6 +161,11 @@ export class ImageRouter {
         });
 
 
+        /**
+         * All info of the images which are uploaded by this system 
+         * will be stored in a mongodb collection called ImageInfo
+         * In order to access data of an image below endpoint is available! 
+         */
         this.router.get("/info/:imageId", async (req, res) => {
 
             try {

@@ -1,4 +1,5 @@
-import { GetImageQueryDto, ImageManipulationDto } from '@dtos/image.dto';
+import { GetImageQueryDto } from '@dtos/get-image.dto';
+import { ImageManipulationDto } from '@dtos/image-manipulation.dto';
 import { PostImageDto } from '@dtos/post-image.dto';
 import { ImageType } from '@enums/image-type.enum';
 import { AdapterType, initObjectStoreClient } from '@relaycorp/object-storage';

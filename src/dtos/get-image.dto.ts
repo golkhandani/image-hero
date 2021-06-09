@@ -1,4 +1,3 @@
-import { Format, Space } from '@entities/image.entity';
 import { Fit } from '@enums/fit.enum';
 import { ImageType } from '@enums/image-type.enum';
 import { Kernel } from '@enums/kernel.enum';
@@ -7,25 +6,10 @@ import { isJpegEnabled, isPngEnabled, isResizeEnabled, isRotateEnabled } from '@
 import { toBoolean } from '@shared/transformer/to-boolean.transformer';
 import { toColorHex } from '@shared/transformer/to-colorhex.transformer';
 import { toInt } from '@shared/transformer/to-int.transformer';
-import { Exclude, Expose, Transform } from 'class-transformer';
-import { IsAlpha, IsBoolean, IsDefined, IsEnum, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator';
-import sharp from 'sharp';
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator';
 
 
-
-
-
-
-
-
-
-
-
-export class ImageManipulationDto {
-    fileBuffer?: Buffer;
-    originalImageInfo: sharp.Metadata
-    manipulatedImageInfo: sharp.OutputInfo
-}
 
 
 export class GetImageQueryDto {
@@ -200,6 +184,14 @@ export class GetImageQueryDto {
     @IsNumber()
     @Transform(toInt)
     // quality
+    /**
+     * Quality of image has different definition 
+     * in jpeg or png 
+     * please be aware of how to use it!
+     * for png (sets palette to true):
+     * use the lowest number of colours 
+     * needed to achieve given quality   
+     */
     q: number = 100;
 
     @IsOptional()
@@ -245,6 +237,9 @@ export class GetImageQueryDto {
     @IsOptional()
     @IsNumber()
     @Transform(toInt)
+    /**
+     * Compression level of png format
+     */
     cpl: number = 6
 
     @ValidateIf(isPngEnabled)
@@ -254,5 +249,5 @@ export class GetImageQueryDto {
     /**
      * Quantize to a palette-based image with alpha transparency support (optional, default false)
      */
-    plt: boolean = false;
+    plt: boolean = true;
 }
