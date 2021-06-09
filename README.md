@@ -1,12 +1,13 @@
 # Image Hero
 Image manipulator using sharp api
 (WIP)
+```
 [] docker and docker compose documentation
 [] logic codes documentation
 [] env file documentation
 [] varnish
 [] clustering
-
+```
 # Technologies
 
 ## Sharp
