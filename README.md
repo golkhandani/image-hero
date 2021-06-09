@@ -414,7 +414,8 @@ export class GetImageInfoDto {
     imageId: ObjectId;
 }
 ```
-5. get image with manipulations: `GET /*`
+5. get image with manipulations: 
+>`GET /*`
 
 
 All the images which are uploaded by this system 
