@@ -37,6 +37,119 @@ The framework is fully match with nature of this project due to non-blocking arc
 `Express` is a minimal framework to develop server-side application using `nodejs`. 
 
 
+# Run Project
+The best way to run this project is using docker. 
+
+You can only run node application using `Dockerfile`. You can attach `nodejs` application to any `Minio` and `MongoDb` that you want.
+But in order to have a complete solution you can run docker compose file.
+Docker compose file includes `Minio`, `Mongodb` and `nodejs` application (Bitnami images used to achieve an easy to use and config solution).
+
+Note: Add data (Images and Database) are persists in root folder.
+```yml
+
+services:
+  minio:
+    image: "bitnami/minio:latest"
+    ports:
+      - "9001:9000"
+    environment:
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_DEFAULT_BUCKETS=cache,images
+    volumes:
+      - ./data/minio:/data
+    networks:
+      - image-hero-network
+
+  mongodb:
+    image: "bitnami/mongodb:latest"
+    ports:
+      - "27018:27017"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MONGODB_EXTRA_FLAGS=--wiredTigerCacheSizeGB=2
+      - MONGODB_ENABLE_DIRECTORY_PER_DB=yes
+      - MONGODB_ENABLE_JOURNAL=true
+      - MONGODB_ROOT_PASSWORD=root_password
+      - MONGODB_USERNAME=image_hero
+      - MONGODB_PASSWORD=image_hero_password
+      - MONGODB_DATABASE=ImageHero # same as application name
+    volumes:
+      - ./data/mongo:/bitnami/mongodb
+    networks:
+      - image-hero-network
+
+  node:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: production
+      args:
+        - APP_ENV=production
+    deploy:
+      replicas: 1
+    ports:
+      - "3000:3000"
+    depends_on: 
+      - minio
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - APPLICATION_NAME=ImageHero
+      - APPLICATION_DOMAIN=http://localhost:3000
+      - APPLICATION_PORT=3000
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_DOMAIN=http://minio:9000
+      - MINIO_TLS=false
+      - MINIO_CACHE_BUCKET=cache
+      - MINIO_MAIN_BUCKET=images
+      - DATABASE_URI=mongodb://image_hero:image_hero_password@mongodb:27017/ImageHero
+      - CACHE_CLEANUP_MINUTE=10
+      - JET_LOGGER_MODE=CONSOLE
+      - JET_LOGGER_FILEPATH=jet-logger.log
+      - JET_LOGGER_TIMESTAMP=TRUE
+      - JET_LOGGER_FORMAT=LINE
+    networks:
+      - image-hero-network
+
+```
+
+To build and run the whole solution just run:
+
+```sh
+docker-compose up -d
+```
+And if you want only the `nodejs` application (main manipulator)
+```sh
+docker build --target production --build-arg APP_ENV=production -t image-hero:latest .
+docker run --name image-hero-maniplulator \
+      -e NODE_ENV=production \
+      -e APPLICATION_NAME=ImageHero \
+      -e APPLICATION_DOMAIN=http://localhost:3000 \
+      -e APPLICATION_PORT=3000 \
+      -e MINIO_ACCESS_KEY=minio-access-key \
+      -e MINIO_SECRET_KEY=minio-secret-key \
+      -e MINIO_DOMAIN=http://minio:9000 \
+      -e MINIO_TLS=false \
+      -e MINIO_CACHE_BUCKET=cache \
+      -e MINIO_MAIN_BUCKET=images \
+      -e DATABASE_URI=mongodb://image_hero:image_hero_password@mongodb:27017/ImageHero \
+      -e CACHE_CLEANUP_MINUTE=10 \
+      -e JET_LOGGER_MODE=CONSOLE \
+      -e JET_LOGGER_FILEPATH=jet-logger.log \
+      -e JET_LOGGER_TIMESTAMP=TRUE \
+      -e JET_LOGGER_FORMAT=LINE \ 
+      -t image-hero:latest
+
+
+```
+# Cache 
+
+To have a faster response time for manipulated images, system automatically create a cache file (stored in `cache` bucket) and keep its info in `Mongodb`.
+Cache files will be removed based on `CACHE_CLEANUP_MINUTE` value in environments of `nodejs` application.
+In order to have this nice little feature, we used cronjob module.
+
 
 # DTO
 To validate and transform input object, we used dto file with power of `typescript`, `class-validator` and `class-transformer` which are decorator based object mapper and validator.
